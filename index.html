@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Treget Music</title>
+<link rel="icon" type="image/png" href="treget.png">
+<link rel="apple-touch-icon" href="treget.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>Treget music</h1>
+    <p id="time-greeting"></p>
+  </header>
+
+  <main>
+    <section class="screen active" id="screen-home">
+      <div class="section-title">Jump back in</div>
+      <div class="album-grid" id="home-recent"></div>
+      <div class="section-title">Made for you</div>
+      <div id="home-list"></div>
+    </section>
+
+    <section class="screen" id="screen-search">
+      <div class="searchbar"><span>🔍</span><input type="text" placeholder="Songs, artists" id="search-input"></div>
+      <div id="search-list"></div>
+    </section>
+
+    <section class="screen" id="screen-library">
+      <div class="section-title">Your library</div>
+      <div class="section-title" style="font-size:15px;color:var(--muted);margin-top:4px;">Globalboy Collin Mix</div>
+      <div id="library-list"></div>
+    </section>
+  </main>
+
+  <div class="miniplayer hidden" id="miniplayer">
+    <div class="mp-inner">
+      <div class="art" id="mp-art-click"></div>
+      <div class="mp-text"><div class="name" id="mp-name"></div><div class="artist" id="mp-artist"></div></div>
+      <button class="iconbtn" id="mp-prev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM18 6L9 12l9 6z"/></svg></button>
+      <button class="iconbtn" id="mp-playpause"></button>
+      <button class="iconbtn" id="mp-next"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 6l9 6-9 6z"/></svg></button>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <div class="tabs-inner">
+      <button class="tab active" data-screen="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Home</button>
+      <button class="tab" data-screen="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Search</button>
+      <button class="tab" data-screen="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16M9 4v16M4 8h5M20 20l-3-16-5 1 3 16z"/></svg>Library</button>
+    </div>
+  </nav>
+</div>
+
+<div class="sheet-backdrop" id="sheet-backdrop"></div>
+<div class="sheet" id="sheet">
+  <button class="sheet-close" id="sheet-close">⌄</button>
+  <div class="sheet-handle"></div>
+  <div class="art-big"></div>
+  <div class="name" id="sheet-name"></div>
+  <div class="artist" id="sheet-artist"></div>
+  <div class="progress" id="sheet-progress-bar"><div class="progress-fill" id="sheet-progress"></div></div>
+  <div class="time-row"><span id="sheet-time-cur">0:00</span><span id="sheet-time-dur">0:00</span></div>
+  <div class="controls-row">
+    <button class="skipbtn" id="sheet-prev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM18 6L9 12l9 6z"/></svg></button>
+    <button class="playbtn" id="sheet-playpause"><svg viewBox="0 0 24 24" fill="currentColor" id="sheet-play-icon"><path d="M8 5v14l11-7z"/></svg></button>
+    <button class="skipbtn" id="sheet-next"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 6l9 6-9 6z"/></svg></button>
+  </div>
+</div>
+
+<audio id="audio-el" preload="metadata"></audio>
+
+<script>
+function updateGreeting(){
+  const hour = Number(new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Africa/Accra',
+    hour: '2-digit',
+    hourCycle: 'h23'
+  }).format(new Date()));
+  const greeting = hour < 12
+    ? 'Good morning'
+    : hour < 17
+      ? 'Good afternoon'
+      : 'Good evening';
+  document.getElementById('time-greeting').textContent = `${greeting} — here's what's playing`;
+}
+
+updateGreeting();
+setInterval(updateGreeting, 60_000);
+
+const TRACKS = [
+  {name:'Go Glo', artist:'Globalboy Collin', file:'audio/Globalboy-Collin-GO-GLO.mp3'},
+  {name:'Laughing U Laughing Me', artist:'Globalboy Collin', file:'audio/Globalboy-Collin-LULM-Laughing-U-Laughing-Me.mp3'},
+  {name:'Borga Shiperepe', artist:'Globalboy Collin', file:'audio/Globalboy-Collin-Borga-Shiperepe.mp3'},
+  {name:'Akata (Lami Jnr)', artist:'King Balance ft. Ypee & Globalboy Collin', file:'audio/King-Balance-Akata-ft_-Ypee-Globalboy-Collin-LAMI-JNR.mp3'},
+  {name:'Barbechew', artist:'Globalboy Collin', file:'audio/Globalboy-Collin-BARBECHEW.mp3'},
+  {name:'Asete', artist:'Thomas the Great ft. Globalboy Collin & Pacely', file:'audio/Thomas-the-Great-Asete-Ft-GLOBALBOY-COLLIN-pacely-.mp3'},
+  {name:'Purple Nyame', artist:'Globalboy Collin', file:'audio/Globalboy-Collin-PURPLE-NYAME.mp3'},
+  {name:'Medusa', artist:'Globalboy Collin', file:'audio/GLOBALBOY-COLLIN-Medusa.mp3'},
+  {name:'18', artist:'Globalboy Collin', file:'audio/GLOBALBOY-COLLIN-18.mp3'},
+  {name:'Room 6', artist:'Globalboy Collin ft. Kwaku DMC', file:'audio/GLOBALBOY.mp3'},
+];
+
+function trackRow(t, i){
+  const row = document.createElement('div');
+  row.className = 'track-row';
+  row.dataset.idx = i;
+  row.innerHTML = `<div class="art"></div><div class="tt"><div class="name">${t.name}</div><div class="artist">${t.artist}</div></div><div class="dur">▶</div>`;
+  row.addEventListener('click', () => openPlayer(i));
+  return row;
+}
+function albumCard(t, i){
+  const card = document.createElement('div');
+  card.className = 'album-card';
+  card.innerHTML = `<div class="art"></div><div class="name">${t.name}</div><div class="artist">${t.artist}</div>`;
+  card.addEventListener('click', () => openPlayer(i));
+  return card;
+}
+
+const homeRecent = document.getElementById('home-recent');
+TRACKS.slice(0,4).forEach((t,i)=> homeRecent.appendChild(albumCard(t,i)));
+const homeList = document.getElementById('home-list');
+TRACKS.forEach((t,i)=> homeList.appendChild(trackRow(t,i)));
+const searchList = document.getElementById('search-list');
+TRACKS.forEach((t,i)=> searchList.appendChild(trackRow(t,i)));
+const libraryList = document.getElementById('library-list');
+TRACKS.forEach((t,i)=> libraryList.appendChild(trackRow(t,i)));
+
+document.getElementById('search-input').addEventListener('input', (e)=>{
+  const q = e.target.value.toLowerCase();
+  [...searchList.children].forEach((row,i)=>{
+    const t = TRACKS[i];
+    row.style.display = (t.name.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)) ? '' : 'none';
+  });
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('screen-'+tab.dataset.screen).classList.add('active');
+  });
+});
+
+// ---- player ----
+let currentIdx = 0, playing = false;
+const audio = document.getElementById('audio-el');
+const miniplayer = document.getElementById('miniplayer');
+const sheet = document.getElementById('sheet');
+const sheetBackdrop = document.getElementById('sheet-backdrop');
+
+function fmt(sec){ if(!isFinite(sec)) return '0:00'; const m=Math.floor(sec/60), s=Math.floor(sec%60); return m+':'+String(s).padStart(2,'0'); }
+
+function loadTrack(i, autoplay){
+  currentIdx = (i + TRACKS.length) % TRACKS.length;
+  const t = TRACKS[currentIdx];
+  audio.src = t.file;
+  document.getElementById('mp-name').textContent = t.name;
+  document.getElementById('mp-artist').textContent = t.artist;
+  document.getElementById('sheet-name').textContent = t.name;
+  document.getElementById('sheet-artist').textContent = t.artist;
+  document.querySelectorAll('.track-row').forEach(r=> r.classList.toggle('playing', +r.dataset.idx === currentIdx));
+  miniplayer.classList.remove('hidden');
+  if (autoplay) audio.play();
+}
+function openPlayer(i){
+  loadTrack(i, true);
+  sheetBackdrop.classList.add('open');
+  sheet.classList.add('open');
+}
+function togglePlay(){ audio.paused ? audio.play() : audio.pause(); }
+function next(){ loadTrack(currentIdx+1, true); }
+function prev(){ loadTrack(currentIdx-1, true); }
+
+audio.addEventListener('play', ()=>{ playing=true; updatePlayIcons(); });
+audio.addEventListener('pause', ()=>{ playing=false; updatePlayIcons(); });
+audio.addEventListener('ended', next);
+audio.addEventListener('timeupdate', ()=>{
+  const pct = audio.duration ? (audio.currentTime/audio.duration*100) : 0;
+  document.getElementById('sheet-progress').style.width = pct+'%';
+  document.getElementById('sheet-time-cur').textContent = fmt(audio.currentTime);
+  document.getElementById('sheet-time-dur').textContent = fmt(audio.duration);
+});
+
+function updatePlayIcons(){
+  document.getElementById('mp-playpause').innerHTML = playing
+    ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+  document.getElementById('sheet-play-icon').innerHTML = playing
+    ? '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>'
+    : '<path d="M8 5v14l11-7z"/>';
+}
+
+document.getElementById('mp-playpause').addEventListener('click', (e)=>{ e.stopPropagation(); togglePlay(); });
+document.getElementById('mp-next').addEventListener('click', (e)=>{ e.stopPropagation(); next(); });
+document.getElementById('mp-prev').addEventListener('click', (e)=>{ e.stopPropagation(); prev(); });
+document.getElementById('sheet-playpause').addEventListener('click', togglePlay);
+document.getElementById('sheet-next').addEventListener('click', next);
+document.getElementById('sheet-prev').addEventListener('click', prev);
+document.getElementById('mp-art-click').addEventListener('click', ()=>{
+  sheetBackdrop.classList.add('open'); sheet.classList.add('open');
+});
+document.getElementById('sheet-close').addEventListener('click', closeSheet);
+sheetBackdrop.addEventListener('click', closeSheet);
+function closeSheet(){ sheetBackdrop.classList.remove('open'); sheet.classList.remove('open'); }
+
+document.getElementById('sheet-progress-bar').addEventListener('click', (e)=>{
+  if (!audio.duration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = pct * audio.duration;
+});
+
+loadTrack(0, false);
+</script>
+</body>
+</html>

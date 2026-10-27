@@ -1,0 +1,11 @@
+{
+  "name": "Wavelength",
+  "short_name": "Wavelength",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#1B1025",
+  "theme_color": "#1B1025",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
